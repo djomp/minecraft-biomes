@@ -27,7 +27,7 @@
 				<div id="main">
 
 <?php
-
+// If there is no POST data, show the form to upload the file
 if (!isset($_POST['stat']))
 {
 ?>
@@ -40,11 +40,14 @@ if (!isset($_POST['stat']))
                         <p><input type="file" name="statFile" /></p>
                         <p><input class="button" type="submit" value="Analyse Stats" /></p>
                 </form>
-<?php } else {
+<?php 
+} else {
+	// Check the file uploaded correctly
 	if (is_uploaded_file($_FILES['statFile']['tmp_name']))
 	{
 		$mcStats = new mcStats($_FILES['statFile']['tmp_name']);
 
+		// Try to get the minecraft username associated with this file
 		$name = $mcStats->getUserName($_FILES['statFile']['name']);
 ?>
 		<h2>Biomes Explored <?=$name ? 'by '.$name : '' ?></h2>
@@ -82,8 +85,8 @@ if (!isset($_POST['stat']))
 			<input class="button" type="submit" value="Back" />
 		</form>
 <?php
-	}
-}
+	} // if file uploaded successfully
+} // if file uploaded or not
 
 ?>
 				</div>
@@ -103,10 +106,16 @@ if (!isset($_POST['stat']))
 
 <?php
 
+/**
+ * mcStats holds the info for processing the file and the biomes
+ */
 class mcStats {
-
+	
+	// URL to use to lookup usernames
 	private $userLookup = 'https://sessionserver.mojang.com/session/minecraft/profile/';
 
+	// List of Biomes required for the "Adventuring Time" achievement
+	// Will also be the list of biomes left to find once the file is processed
 	public $biomes = ['Beach','Birch Forest','Birch Forest Hills','Cold Beach',
 		'Cold Taiga','Cold Taiga Hills','Deep Ocean','Desert','DesertHills',
 		'Extreme Hills','Extreme Hills+','Forest','ForestHills','FrozenRiver',
@@ -116,10 +125,15 @@ class mcStats {
 		'Roofed Forest','Savanna','Savanna Plateau','Stone Beach','Swampland',
 		'Taiga','TaigaHills'];
 
+	// Arrays of biomes for output
 	public $biomesFound, $unknownBiomes = [];
 
 	private $stats;
 
+	/**
+	 * Initialise the class; get the biome information out of the file
+	 * @param string $filePath Path to the uploaded file
+	 */
 	public function __construct($filePath)
 	{
 		$this->stats = json_decode(file_get_contents($filePath));
@@ -130,9 +144,13 @@ class mcStats {
 			{
 				if (in_array($biome, $this->biomes))
 				{
+					// This is a biome that's required
+					// Remove this biome from the list of biomes required
 					unset($this->biomes[array_search($biome, $this->biomes)]);
+					// and add it to the list of biomes found
 					$this->biomesFound[] = $biome;
 				} else {
+					// Not required for the achievement - add to list of other biomes
 					$this->unknownBiomes[] = $biome;
 				}
 			}
@@ -142,6 +160,10 @@ class mcStats {
 		}
 	}
 
+	/**
+	 * Get the username associated with the given UID
+	 * @param string $uid User ID / filename of stats file
+	 */
 	public function getUserName($uid)
 	{
 		// Clean the file name into a uuid we can look up
@@ -160,5 +182,4 @@ class mcStats {
 			return NULL;
 		}
 	}
-
 }
