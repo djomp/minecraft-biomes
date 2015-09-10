@@ -92,7 +92,9 @@ if (!isset($_POST['stat']))
 
 			<!--footer starts here-->
 			<div id="footer">
-
+				<p>
+					<a href="https://github.com/djomp/minecraft-biomes">https://github.com/djomp/minecraft-biomes</a>
+				</p>
 			</div>
 		<!-- wrap ends here -->
 		</div>
